@@ -1,7 +1,22 @@
-const express = require("express");
+const cluster = require("cluster");
 
-const app = express();
+//if the file is being executed in master mode
+if (cluster.isMaster) {
+  cluster.fork();
+} else {
+  const express = require("express");
 
-app.get("/", (req, res) => {});
+  const app = express();
 
-app.listen(3000, () => console.log("listening port 3000"));
+  function doWork(duration) {
+    const start = Date.now();
+    while (Date.now - start < duration) {}
+  }
+
+  app.get("/", (req, res) => {
+    doWork(5000);
+    res.send("hi there!");
+  });
+
+  app.listen(3000, () => console.log("listening port 3000"));
+}
